@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEVbet365 Live Match Score</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0b131a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #f1c40f;
+            margin: 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .header p {
+            color: #7f8c8d;
+            margin: 5px 0 0 0;
+            font-size: 1.1rem;
+        }
+        .score-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .match-card {
+            background: linear-gradient(145deg, #112233, #0f1c2a);
+            border-left: 5px solid #f1c40f;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .match-status {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #f1c40f;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: rgba(241, 196, 15, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .teams-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .team {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .vs {
+            color: #f1c40f;
+            font-style: italic;
+            font-weight: bold;
+            background: rgba(255,255,255,0.05);
+            padding: 5px 10px;
+            border-radius: 50%;
+        }
+        .score-details {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 15px;
+            color: #e0e0e0;
+            line-height: 1.6;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 18px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>DEVbet365</h1>
+        <p>🔴 Live Cricket Score Board</p>
+    </div>
+
+    <div class="score-container" id="score-board">
+        <div class="loading">Live scores load ho rahe hain...</div>
+    </div>
+
+    <script>
+        async function fetchLiveScores() {
+            const url = 'https://free-cricbuzz-cricket-api.p.rapidapi.com/cricket-livescores';
+            const options = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-rapidapi-host': 'free-cricbuzz-cricket-api.p.rapidapi.com',
+                    'x-rapidapi-key': '4145ed1f16mshecc36d60ade0476p128b68jsnacf0136db77f'
+                }
+            };
+
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+                displayScores(result);
+            } catch (error) {
+                console.error('Error fetching scores:', error);
+                document.getElementById('score-board').innerHTML = '<div class="loading" style="color: #e74c3c;">Score load karne mein dikkat aa rahi hai. Kripya thodi der baad check karein.</div>';
+            }
+        }
+
+        function displayScores(data) {
+            const container = document.getElementById('score-board');
+            container.innerHTML = ''; // Loading text hatane ke liye
+
+            // API response data check karne ke liye (ya to direct array hoga ya data ke andar array)
+            const matches = data.currentMatches || data.matches || (Array.isArray(data) ? data : null);
+
+            if (!matches || matches.length === 0) {
+                container.innerHTML = '<div class="loading">Abhi koi match live nahi chal raha hai.</div>';
+                return;
+            }
+
+            // Matches loop
+            matches.forEach(match => {
+                const card = document.createElement('div');
+                card.className = 'match-card';
+
+                // API fields ke naam ke hisab se safe fallback lagaya hai
+                const team1 = match.team1 || match.teamA || 'Team 1';
+                const team2 = match.team2 || match.teamB || 'Team 2';
+                const score = match.score || match.currentScore || 'Match details loading...';
+                const status = match.status || match.matchStatus || 'Live Match';
+                const customStatus = match.currentStatus || match.result || '';
+
+                card.innerHTML = `
+                    <div class="match-status">${status}</div>
+                    <div class="teams-container">
+                        <div class="team">${team1}</div>
+                        <div class="vs">VS</div>
+                        <div class="team">${team2}</div>
+                    </div>
+                    <div class="score-details">
+                        <strong>Score:</strong> ${score} <br>
+                        ${customStatus ? <strong>Update:</strong> ${customStatus} : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Pehli baar score load karne ke liye
+        fetchLiveScores();
+        
+        // Har 30 second mein score automatic background mein update hota rahega
+        setInterval(fetchLiveScores, 30000);
+    </script>
+</body>
+</html>
